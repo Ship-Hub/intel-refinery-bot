@@ -119,16 +119,25 @@ const main = async () => {
   const accountIdIsText = isTextId(accountIdColumn);
   const apiKeyIdIsText = isTextId(apiKeyIdColumn);
 
-  const [existingAccounts] = await db
-    .promise()
-    .query(
-      "SELECT id FROM accounts WHERE organization_name = ? ORDER BY created_at ASC LIMIT 1",
-      ["Intel Refinery Bot"]
-    );
+  const hasOrganizationName = await hasColumn(db, "accounts", "organization_name");
+  const [existingAccounts] = hasOrganizationName
+    ? await db
+        .promise()
+        .query(
+          "SELECT id FROM accounts WHERE organization_name = ? ORDER BY created_at ASC LIMIT 1",
+          ["Intel Refinery Bot"]
+        )
+    : await db.promise().query("SELECT id FROM accounts ORDER BY id ASC LIMIT 1");
 
   let accountId = existingAccounts[0]?.id;
 
   if (!accountId) {
+    if (!hasOrganizationName) {
+      throw new Error(
+        "No account exists to own the bot API key, and accounts.organization_name is unavailable"
+      );
+    }
+
     if (accountIdIsText) {
       accountId = crypto.randomUUID();
       await db
