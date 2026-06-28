@@ -48,6 +48,41 @@ const hasColumn = async (db, table, column) => Boolean(await getColumn(db, table
 
 const isTextId = (column) => /char|varchar|text/i.test(column?.Type || "");
 
+const ensureCommercialAuthTables = async (db) => {
+  await db.promise().query(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id CHAR(36) PRIMARY KEY,
+      organization_name VARCHAR(255),
+      role ENUM('owner', 'admin', 'member') DEFAULT 'owner',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await db.promise().query(`
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id CHAR(36) PRIMARY KEY,
+      account_id CHAR(36) NOT NULL,
+      name VARCHAR(255),
+      api_key_hash VARCHAR(255) NOT NULL,
+      key_prefix VARCHAR(16) NOT NULL,
+      label VARCHAR(255),
+      daily_credit_limit INT DEFAULT 1000,
+      is_active TINYINT(1) DEFAULT 1,
+      requests_count INT DEFAULT 0,
+      last_used_at DATETIME NULL,
+      created_by_user_id CHAR(36) NULL,
+      allowed_ips JSON NULL,
+      scopes JSON NULL,
+      revoked_at DATETIME NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_apikeys_account (account_id),
+      INDEX idx_apikeys_prefix (key_prefix),
+      CONSTRAINT fk_apikeys_account FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+};
+
 const main = async () => {
   if (!fs.existsSync(botEnvPath)) {
     throw new Error(`Bot env file not found at ${botEnvPath}`);
@@ -69,6 +104,8 @@ const main = async () => {
     "utils",
     "hashApiKey"
   ));
+
+  await ensureCommercialAuthTables(db);
 
   const accountIdColumn = await getColumn(db, "accounts", "id");
   const apiKeyIdColumn = await getColumn(db, "api_keys", "id");
