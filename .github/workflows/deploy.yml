@@ -88,7 +88,8 @@ jobs:
 
             if command -v pm2 >/dev/null 2>&1; then
               pm2 delete intel-engine-bot || true
-              pm2 startOrReload ecosystem.config.cjs --update-env
+              pm2 delete intel-refinery-bot || true
+              pm2 start ecosystem.config.cjs --update-env
               pm2 save
             else
               npm install -g pm2
