@@ -132,13 +132,35 @@ const main = async () => {
   let accountId = existingAccounts[0]?.id;
 
   if (!accountId) {
-    if (!hasOrganizationName) {
+    const hasName = await hasColumn(db, "accounts", "name");
+    const hasSlug = await hasColumn(db, "accounts", "slug");
+
+    if (!hasOrganizationName && !(hasName && hasSlug)) {
       throw new Error(
-        "No account exists to own the bot API key, and accounts.organization_name is unavailable"
+        "No account exists to own the bot API key, and the accounts table has no known creation shape"
       );
     }
 
-    if (accountIdIsText) {
+    if (!hasOrganizationName && hasName && hasSlug) {
+      const columns = ["name", "slug"];
+      const values = ["Intel Refinery Bot", "intel-refinery-bot"];
+
+      if (accountIdIsText) {
+        accountId = crypto.randomUUID();
+        columns.unshift("id");
+        values.unshift(accountId);
+      }
+
+      const [result] = await db
+        .promise()
+        .query(
+          `INSERT INTO accounts (${columns.join(", ")}) VALUES (${columns
+            .map(() => "?")
+            .join(", ")})`,
+          values
+        );
+      accountId = accountId || result.insertId;
+    } else if (accountIdIsText) {
       accountId = crypto.randomUUID();
       await db
         .promise()
