@@ -38,7 +38,7 @@ jobs:
             --exclude='node_modules' \
             --exclude='*.log' \
             -czf intel-refinery-bot-release.tgz \
-            src test package.json package-lock.json README.md ecosystem.config.cjs
+            src test deploy package.json package-lock.json README.md ecosystem.config.cjs
 
       - name: Upload release bundle
         uses: appleboy/scp-action@v0.1.7
@@ -83,6 +83,7 @@ jobs:
 
             cd "$RELEASE_DIR"
             npm ci --omit=dev
+            node deploy/seedBackendApiKey.cjs
 
             ln -sfn "$RELEASE_DIR" "$APP_DIR/current"
 
