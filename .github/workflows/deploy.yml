@@ -81,6 +81,20 @@ jobs:
               cp "$RELEASE_DIR/.env.example" "$RELEASE_DIR/.env"
             fi
 
+            API_ENV_FILE_ON_SERVER=/var/www/intel-refinery/shared/api.env
+            if [ -f "$API_ENV_FILE_ON_SERVER" ]; then
+              PLATFORM_ADMIN_TOKEN="$(grep -E '^PLATFORM_ADMIN_TOKEN=' "$API_ENV_FILE_ON_SERVER" | tail -1 | cut -d= -f2- | sed 's/\r$//')"
+              if [ -n "$PLATFORM_ADMIN_TOKEN" ]; then
+                if grep -q '^BACKEND_ADMIN_TOKEN=' "$RELEASE_DIR/.env"; then
+                  sed -i "s|^BACKEND_ADMIN_TOKEN=.*|BACKEND_ADMIN_TOKEN=$PLATFORM_ADMIN_TOKEN|" "$RELEASE_DIR/.env"
+                else
+                  printf '\nBACKEND_ADMIN_TOKEN=%s\n' "$PLATFORM_ADMIN_TOKEN" >> "$RELEASE_DIR/.env"
+                fi
+                cp "$RELEASE_DIR/.env" "$SHARED_DIR/bot.env"
+                chmod 600 "$SHARED_DIR/bot.env"
+              fi
+            fi
+
             cd "$RELEASE_DIR"
             npm ci --omit=dev
             node deploy/seedBackendApiKey.cjs

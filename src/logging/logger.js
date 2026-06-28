@@ -10,7 +10,7 @@ const logger =
       env.LOG_LEVEL,
     base: {
       service:
-        "disputeanalysis-telegram-bot"
+        "intel-refinery-telegram-bot"
     },
     timestamp:
       pino.stdTimeFunctions.isoTime,
@@ -19,8 +19,11 @@ const logger =
         "token",
         "botToken",
         "apiKey",
+        "adminToken",
         "headers.x-api-key",
+        "headers.x-admin-token",
         "headers['x-api-key']",
+        "headers['x-admin-token']",
         "config.headers.x-api-key"
       ],
       remove: true
@@ -44,4 +47,3 @@ module.exports = {
   logger,
   childForUpdate
 };
-

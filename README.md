@@ -1,50 +1,26 @@
-# DisputeAnalysis AI Telegram Bot
+# Intel Refinery Telegram Bot
 
-Thin Telegram connector for the existing DisputeAnalysis AI backend.
+OTP-only Telegram connector for Intel Refinery web login.
 
-## Responsibilities
+## Responsibility
 
-- Receive Telegram updates the bot is allowed to see
-- Normalize Telegram messages
-- Send messages to the backend conversation API
-- Poll bounded async analysis jobs
-- Return concise replies to Telegram users
+- Respond to `/otp` in a private Telegram chat
+- Request a short-lived login code from the Intel Refinery API
+- Publish only the `/otp` command to Telegram
 
-It does not perform AI reasoning locally.
+The bot only returns login codes.
 
-## Commands
+## Command
 
-- `/help`
-- `/summary`
-- `/analyze`
-- `/analyze_time 2h`
-- `/analyze_range <start-link> <end-link>`
-- `/analyze_message`
-- `/analyze_image`
-- `/analyze_reply`
-
-Mention examples:
-
-- `@JudgeBot summarize last 2 hours`
-- `@JudgeBot what happened here?`
-- `@JudgeBot analyze this`
-
-## Safety Model
-
-- Ignores bot-authored messages
-- Maintains a bounded per-chat message cache
-- Uses bounded backend polling
-- Uses scoped, expiring upload sessions keyed by `chatId:userId`
-- Cleans processing indicators in `finally`
-- Never claims access to messages the bot has not received
+- `/otp` - get a one-time Intel Refinery login code
 
 ## Local Setup
 
 1. Copy `.env.example` to `.env`
-2. Set `BOT_TOKEN`, `BACKEND_BASE_URL`, and `BACKEND_API_KEY`
+2. Set `BOT_TOKEN`, `BOT_USERNAME`, `BACKEND_BASE_URL`, `BACKEND_API_KEY`, and `BACKEND_ADMIN_TOKEN`
 3. Run `npm install`
 4. Run `npm start`
 
-## Telegram Notes
+## Production Bot
 
-For group-wide analysis, the bot must be present in the chat and configured so it receives the relevant messages. Time-range and message-range analysis operate over the connector's own bounded cache of received updates.
+Telegram: https://t.me/intel_refinery_bot
