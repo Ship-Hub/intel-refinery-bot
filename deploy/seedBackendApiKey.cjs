@@ -60,9 +60,7 @@ const main = async () => {
     throw new Error("BACKEND_API_KEY is not configured in bot env");
   }
 
-  require(path.join(apiDir, "node_modules", "dotenv")).config({
-    path: path.join(apiDir, ".env")
-  });
+  Object.assign(process.env, parseEnvFile(path.join(apiDir, ".env")));
 
   const db = require(path.join(apiDir, "src", "config", "db"));
   const { hashApiKey } = require(path.join(
