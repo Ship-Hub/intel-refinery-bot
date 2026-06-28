@@ -59,10 +59,17 @@ const ensureCommercialAuthTables = async (db) => {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
+  const accountIdColumn = await getColumn(db, "accounts", "id");
+  const accountIdType = accountIdColumn?.Type || "CHAR(36)";
+  const accountIdIsText = isTextId(accountIdColumn);
+  const apiKeyIdDefinition = accountIdIsText
+    ? "id CHAR(36) PRIMARY KEY"
+    : "id BIGINT PRIMARY KEY AUTO_INCREMENT";
+
   await db.promise().query(`
     CREATE TABLE IF NOT EXISTS api_keys (
-      id CHAR(36) PRIMARY KEY,
-      account_id CHAR(36) NOT NULL,
+      ${apiKeyIdDefinition},
+      account_id ${accountIdType} NOT NULL,
       name VARCHAR(255),
       api_key_hash VARCHAR(255) NOT NULL,
       key_prefix VARCHAR(16) NOT NULL,
